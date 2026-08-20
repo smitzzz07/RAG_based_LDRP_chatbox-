@@ -2,58 +2,142 @@ from pathlib import Path
 import pymupdf
 
 
-# Find project root
+# ==================================================
+# PROJECT PATHS
+# ==================================================
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# PDF location
-PDF_PATH = PROJECT_ROOT / "data" / "raw" / "mca_syllabus.pdf"
+PDF_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+    / "mca_syllabus.pdf"
+)
 
-# Output location
-OUTPUT_PATH = PROJECT_ROOT / "data" / "raw" / "extracted_text.txt"
+OUTPUT_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+    / "extracted_text.txt"
+)
 
 
-print("PDF path:", PDF_PATH)
-print("PDF exists:", PDF_PATH.exists())
+# ==================================================
+# CHECK PDF
+# ==================================================
+
+print("==============================================")
+print("        LDRP RAG - PDF LOADER")
+print("==============================================")
+
+print(
+    f"PDF path: {PDF_PATH}"
+)
+
+print(
+    f"PDF exists: {PDF_PATH.exists()}"
+)
 
 
 if not PDF_PATH.exists():
+
     print("❌ PDF not found!")
+
     exit()
 
 
-# Open PDF
-doc = pymupdf.open(PDF_PATH)
+# ==================================================
+# OPEN PDF
+# ==================================================
 
-print(f"✅ PDF loaded successfully!")
-print(f"Total pages: {len(doc)}")
+doc = pymupdf.open(
+    PDF_PATH
+)
 
+print(
+    "\n✅ PDF loaded successfully!"
+)
+
+print(
+    f"Total pages: {len(doc)}"
+)
+
+
+# ==================================================
+# EXTRACT PAGE BY PAGE
+# ==================================================
 
 all_text = []
 
 
-# Extract text page by page
-for page_number, page in enumerate(doc, start=1):
+for page_number, page in enumerate(
+    doc,
+    start=1
+):
+
+    print(
+        f"Extracting page {page_number}/{len(doc)}..."
+    )
 
     text = page.get_text()
 
+    # ----------------------------------------------
+    # Add explicit page marker
+    # ----------------------------------------------
+
     all_text.append(
-        f"\n========== PAGE {page_number} ==========\n"
+        f"\n"
+        f"========== PAGE {page_number} ==========\n"
     )
 
-    all_text.append(text)
+    all_text.append(
+        text
+    )
 
 
-# Combine everything
-final_text = "\n".join(all_text)
+# ==================================================
+# COMBINE TEXT
+# ==================================================
+
+final_text = "\n".join(
+    all_text
+)
 
 
-# Save extracted text
+# ==================================================
+# SAVE
+# ==================================================
+
 OUTPUT_PATH.write_text(
     final_text,
     encoding="utf-8"
 )
 
 
-print("✅ Text extraction completed!")
-print(f"Characters extracted: {len(final_text)}")
-print(f"Saved to: {OUTPUT_PATH}")
+# ==================================================
+# CLOSE PDF
+# ==================================================
+
+doc.close()
+
+
+# ==================================================
+# RESULT
+# ==================================================
+
+print("\n==============================================")
+
+print(
+    "✅ Text extraction completed!"
+)
+
+print(
+    f"Characters extracted: {len(final_text)}"
+)
+
+print(
+    f"Saved to: {OUTPUT_PATH}"
+)
+
+print("==============================================")
