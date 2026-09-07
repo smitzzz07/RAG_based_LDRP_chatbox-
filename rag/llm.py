@@ -46,16 +46,86 @@ MODEL_NAME = "gemini-3.6-flash"
 # ==================================================
 
 def generate_answer(prompt):
+
     """
     Send the prompt to Gemini and return the answer.
+
+    Automatically retries temporary Gemini failures.
     """
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt
-    )
+    max_retries = 3
 
-    return response.text
+    for attempt in range(1, max_retries + 1):
+
+        try:
+
+            print(
+                f"\n📡 Gemini request "
+                f"(attempt {attempt}/{max_retries})..."
+            )
+
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt
+            )
+
+            if response.text:
+
+                print(
+                    "✅ Gemini response received"
+                )
+
+                return response.text
+
+            return (
+                "Gemini returned an empty response."
+            )
+
+        except Exception as e:
+
+            print(
+                f"\n⚠️ Gemini request failed:"
+            )
+
+            print(
+                f"{type(e).__name__}: {e}"
+            )
+
+            # Retry temporary server errors
+            error_text = str(e)
+
+            if (
+                "503" in error_text
+                or "UNAVAILABLE" in error_text
+            ):
+
+                if attempt < max_retries:
+
+                    import time
+
+                    wait_time = attempt * 3
+
+                    print(
+                        f"⏳ Retrying in "
+                        f"{wait_time} seconds..."
+                    )
+
+                    time.sleep(
+                        wait_time
+                    )
+
+                    continue
+
+            # Don't retry other errors blindly
+            return (
+                "Unable to generate an answer "
+                "from Gemini at the moment."
+            )
+
+    return (
+        "Gemini is temporarily unavailable. "
+        "Please try again."
+    )
 
 
 # ==================================================

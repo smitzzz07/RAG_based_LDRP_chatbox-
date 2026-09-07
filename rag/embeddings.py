@@ -14,7 +14,7 @@ INPUT_PATH = (
     PROJECT_ROOT
     / "data"
     / "processed"
-    / "chunks.json"
+    / "all_chunks.json"
 )
 
 OUTPUT_PATH = (
