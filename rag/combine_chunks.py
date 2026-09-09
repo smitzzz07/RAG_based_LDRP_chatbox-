@@ -42,6 +42,7 @@ def load_json(path):
             f"File not found:\n{path}"
         )
 
+
     with open(
         path,
         "r",
@@ -50,11 +51,13 @@ def load_json(path):
 
         data = json.load(file)
 
+
     if not isinstance(data, list):
 
         raise ValueError(
             f"Expected a JSON list in:\n{path}"
         )
+
 
     return data
 
@@ -63,13 +66,17 @@ def load_json(path):
 # VALIDATE CHUNK
 # ==================================================
 
-def validate_chunk(chunk, source_name):
+def validate_chunk(
+    chunk,
+    source_name
+):
 
     required_fields = [
         "chunk_id",
         "text",
         "metadata"
     ]
+
 
     for field in required_fields:
 
@@ -79,6 +86,7 @@ def validate_chunk(chunk, source_name):
                 f"Missing '{field}' in "
                 f"{source_name} chunk"
             )
+
 
     if not isinstance(
         chunk["metadata"],
@@ -90,6 +98,7 @@ def validate_chunk(chunk, source_name):
             f"{source_name} chunk "
             f"{chunk['chunk_id']}"
         )
+
 
     if not chunk["text"].strip():
 
@@ -118,6 +127,56 @@ def validate_chunks(
 
 
 # ==================================================
+# FIX PDF METADATA
+# ==================================================
+
+def prepare_pdf_chunks(
+    chunks
+):
+
+    for chunk in chunks:
+
+        metadata = chunk["metadata"]
+
+        metadata["source"] = (
+            "mca_syllabus.pdf"
+        )
+
+        metadata["source_type"] = (
+            "pdf"
+        )
+
+        metadata["title"] = (
+            "MCA Syllabus"
+        )
+
+        metadata["url"] = None
+
+
+# ==================================================
+# FIX WEBSITE METADATA
+# ==================================================
+
+def prepare_website_chunks(
+    chunks
+):
+
+    for chunk in chunks:
+
+        metadata = chunk["metadata"]
+
+        metadata["source_type"] = (
+            "website"
+        )
+
+        if not metadata.get("source"):
+
+            metadata["source"] = (
+                "LDRP-ITR Official Website"
+            )
+
+
+# ==================================================
 # MAIN
 # ==================================================
 
@@ -132,9 +191,9 @@ def main():
     print("=" * 60)
 
 
-    # ==================================================
-    # LOAD PDF CHUNKS
-    # ==================================================
+    # --------------------------------------------------
+    # PDF
+    # --------------------------------------------------
 
     print(
         "\n📄 Loading PDF chunks..."
@@ -144,29 +203,32 @@ def main():
         PDF_CHUNKS_PATH
     )
 
+
     print(
         f"✅ PDF chunks loaded: "
         f"{len(pdf_chunks)}"
     )
 
 
-    # ==================================================
-    # VALIDATE PDF CHUNKS
-    # ==================================================
-
     validate_chunks(
         pdf_chunks,
         "PDF"
     )
 
-    print(
-        "✅ PDF chunks validated"
+
+    prepare_pdf_chunks(
+        pdf_chunks
     )
 
 
-    # ==================================================
-    # LOAD WEBSITE CHUNKS
-    # ==================================================
+    print(
+        "✅ PDF metadata prepared"
+    )
+
+
+    # --------------------------------------------------
+    # WEBSITE
+    # --------------------------------------------------
 
     print(
         "\n🌐 Loading website chunks..."
@@ -176,150 +238,132 @@ def main():
         WEBSITE_CHUNKS_PATH
     )
 
+
     print(
         f"✅ Website chunks loaded: "
         f"{len(website_chunks)}"
     )
 
 
-    # ==================================================
-    # VALIDATE WEBSITE CHUNKS
-    # ==================================================
-
     validate_chunks(
         website_chunks,
         "Website"
     )
 
-    print(
-        "✅ Website chunks validated"
+
+    prepare_website_chunks(
+        website_chunks
     )
 
 
-    # ==================================================
+    print(
+        "✅ Website metadata prepared"
+    )
+
+
+    # --------------------------------------------------
     # COMBINE
-    # ==================================================
-
-    print(
-        "\n🔄 Combining knowledge..."
-    )
+    # --------------------------------------------------
 
     all_chunks = (
         pdf_chunks
         + website_chunks
     )
 
-    print(
-        f"Total chunks: "
-        f"{len(all_chunks)}"
-    )
 
-
-    # ==================================================
-    # CHECK DUPLICATE CHUNK IDs
-    # ==================================================
-
-    print(
-        "\n🔍 Checking chunk IDs..."
-    )
+    # --------------------------------------------------
+    # CHECK IDS
+    # --------------------------------------------------
 
     chunk_ids = [
         chunk["chunk_id"]
         for chunk in all_chunks
     ]
 
-    unique_ids = set(chunk_ids)
 
-    if len(chunk_ids) != len(unique_ids):
+    if len(chunk_ids) != len(set(chunk_ids)):
 
         duplicates = [
             chunk_id
-            for chunk_id in unique_ids
+            for chunk_id in set(chunk_ids)
             if chunk_ids.count(chunk_id) > 1
         ]
 
         raise ValueError(
-            "\n❌ Duplicate chunk IDs detected:\n"
-            f"{duplicates}"
+            f"Duplicate chunk IDs:\n{duplicates}"
         )
+
 
     print(
         "✅ All chunk IDs are unique"
     )
 
 
-    # ==================================================
-    # CHECK EMPTY CHUNKS
-    # ==================================================
+    # --------------------------------------------------
+    # CHECK EMPTY
+    # --------------------------------------------------
 
     empty_chunks = [
-
         chunk["chunk_id"]
-
         for chunk in all_chunks
-
         if not chunk["text"].strip()
     ]
+
 
     if empty_chunks:
 
         raise ValueError(
-            "Empty chunks detected:\n"
+            f"Empty chunks detected:\n"
             f"{empty_chunks}"
         )
+
 
     print(
         "✅ No empty chunks found"
     )
 
 
-    # ==================================================
+    # --------------------------------------------------
     # SAVE
-    # ==================================================
+    # --------------------------------------------------
 
     OUTPUT_PATH.parent.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    OUTPUT_PATH.write_text(
 
+    OUTPUT_PATH.write_text(
         json.dumps(
             all_chunks,
             indent=2,
             ensure_ascii=False
         ),
-
         encoding="utf-8"
     )
 
 
-    # ==================================================
-    # COUNT SOURCES
-    # ==================================================
-
-    pdf_count = 0
-    website_count = 0
-
-    for chunk in all_chunks:
-
-        source_type = (
-            chunk["metadata"]
-            .get("source_type")
-        )
-
-        if source_type == "website":
-
-            website_count += 1
-
-        else:
-
-            pdf_count += 1
-
-
-    # ==================================================
+    # --------------------------------------------------
     # SUMMARY
-    # ==================================================
+    # --------------------------------------------------
+
+    pdf_count = sum(
+        1
+        for chunk in all_chunks
+        if chunk["metadata"].get(
+            "source_type"
+        ) == "pdf"
+    )
+
+
+    website_count = sum(
+        1
+        for chunk in all_chunks
+        if chunk["metadata"].get(
+            "source_type"
+        ) == "website"
+    )
+
 
     print(
         "\n" + "=" * 60

@@ -29,12 +29,18 @@ OUTPUT_PATH = (
 # ==================================================
 
 CHUNK_SIZE = 500
-
 CHUNK_OVERLAP = 100
 
 
 # ==================================================
-# CLEAN CHUNK
+# PAGE MARKER
+# ==================================================
+
+PAGE_PATTERN = r"========== PAGE (\d+) =========="
+
+
+# ==================================================
+# CLEAN TEXT
 # ==================================================
 
 def clean_chunk(text):
@@ -55,27 +61,63 @@ def clean_chunk(text):
 
 
 # ==================================================
-# FIND PAGE NUMBER
+# GET PAGE AT POSITION
 # ==================================================
 
-def get_page_number(text):
+def get_page_at_position(text, position):
 
-    """
-    Find the last PAGE marker inside the chunk.
-    """
-
-    matches = re.findall(
-        r"========== PAGE (\d+) ==========",
-        text
+    matches = list(
+        re.finditer(
+            PAGE_PATTERN,
+            text[:position + 1]
+        )
     )
 
-    if matches:
+    if not matches:
+        return None
 
-        return int(
-            matches[-1]
+    return int(
+        matches[-1].group(1)
+    )
+
+
+# ==================================================
+# GET PAGE RANGE
+# ==================================================
+
+def get_page_range(text, start, end):
+
+    start_page = get_page_at_position(
+        text,
+        start
+    )
+
+    end_page = get_page_at_position(
+        text,
+        max(start, end - 1)
+    )
+
+    # If the chunk starts before the first page marker,
+    # use the first page marker found inside the chunk.
+    if start_page is None:
+
+        first_match = re.search(
+            PAGE_PATTERN,
+            text[start:end]
         )
 
-    return None
+        if first_match:
+
+            start_page = int(
+                first_match.group(1)
+            )
+
+    # If end page is still missing, use start page.
+    if end_page is None:
+
+        end_page = start_page
+
+    return start_page, end_page
 
 
 # ==================================================
@@ -85,14 +127,14 @@ def get_page_number(text):
 def remove_page_markers(text):
 
     return re.sub(
-        r"========== PAGE \d+ ==========",
+        PAGE_PATTERN,
         "",
         text
     )
 
 
 # ==================================================
-# FIND SPLIT POSITION
+# FIND GOOD SPLIT POSITION
 # ==================================================
 
 def find_split_position(
@@ -103,13 +145,9 @@ def find_split_position(
 
     chunk = text[start:end]
 
-    # ----------------------------------------------
-    # Prefer newline
-    # ----------------------------------------------
 
-    newline_position = chunk.rfind(
-        "\n"
-    )
+    # Prefer newline
+    newline_position = chunk.rfind("\n")
 
     if newline_position > len(chunk) * 0.5:
 
@@ -119,10 +157,8 @@ def find_split_position(
             + 1
         )
 
-    # ----------------------------------------------
-    # Prefer sentence
-    # ----------------------------------------------
 
+    # Prefer sentence
     sentence_matches = list(
         re.finditer(
             r"[.!?]\s",
@@ -134,23 +170,16 @@ def find_split_position(
 
         last_match = sentence_matches[-1]
 
-        if (
-            last_match.start()
-            > len(chunk) * 0.5
-        ):
+        if last_match.start() > len(chunk) * 0.5:
 
             return (
                 start
                 + last_match.end()
             )
 
-    # ----------------------------------------------
-    # Prefer space
-    # ----------------------------------------------
 
-    space_position = chunk.rfind(
-        " "
-    )
+    # Prefer space
+    space_position = chunk.rfind(" ")
 
     if space_position > len(chunk) * 0.5:
 
@@ -160,10 +189,8 @@ def find_split_position(
             + 1
         )
 
-    # ----------------------------------------------
-    # Hard split
-    # ----------------------------------------------
 
+    # Hard split
     return end
 
 
@@ -183,11 +210,13 @@ def create_chunks(
             "Chunk overlap must be smaller than chunk size."
         )
 
+
     chunks = []
 
     start = 0
 
     text_length = len(text)
+
 
     while start < text_length:
 
@@ -195,6 +224,7 @@ def create_chunks(
             start + chunk_size,
             text_length
         )
+
 
         if target_end < text_length:
 
@@ -208,52 +238,60 @@ def create_chunks(
 
             end = target_end
 
-        raw_chunk = text[start:end]
 
-        # ------------------------------------------
-        # Detect page
-        # ------------------------------------------
-
-        page_number = get_page_number(
-            raw_chunk
+        # Get page information before removing marker
+        start_page, end_page = get_page_range(
+            text,
+            start,
+            end
         )
 
-        # ------------------------------------------
-        # Remove page markers
-        # ------------------------------------------
 
+        raw_chunk = text[start:end]
+
+
+        # Remove page marker
         chunk = remove_page_markers(
             raw_chunk
         )
+
 
         chunk = clean_chunk(
             chunk
         )
 
+
         if chunk:
 
-            chunks.append({
+            chunks.append(
+                {
+                    "text": chunk,
 
-                "text": chunk,
+                    "start_page": start_page,
 
-                "page": page_number,
+                    "end_page": end_page,
 
-                "start": start,
+                    "start": start,
 
-                "end": end
-            })
+                    "end": end
+                }
+            )
 
-        # ------------------------------------------
-        # Move forward
-        # ------------------------------------------
+
+        if end >= text_length:
+            break
+
 
         next_start = end - overlap
+
 
         if next_start <= start:
 
             next_start = end
 
+
         start = next_start
+
 
     return chunks
 
@@ -264,18 +302,16 @@ def create_chunks(
 
 def main():
 
-    print("=" * 55)
+    print("=" * 60)
 
     print(
-        "        LDRP RAG - PAGE AWARE CHUNKING"
+        "       LDRP RAG - PAGE AWARE CHUNKING"
     )
 
-    print("=" * 55)
+    print("=" * 60)
 
-    # ----------------------------------------------
+
     # Check input
-    # ----------------------------------------------
-
     if not INPUT_PATH.exists():
 
         print(
@@ -283,18 +319,17 @@ def main():
         )
 
         print(
-            f"Expected: {INPUT_PATH}"
+            f"Expected:\n{INPUT_PATH}"
         )
 
         return
 
-    # ----------------------------------------------
-    # Read text
-    # ----------------------------------------------
 
+    # Read text
     text = INPUT_PATH.read_text(
         encoding="utf-8"
     )
+
 
     print(
         f"\nInput characters: {len(text)}"
@@ -308,70 +343,74 @@ def main():
         f"Chunk overlap: {CHUNK_OVERLAP}"
     )
 
-    # ----------------------------------------------
-    # Create chunks
-    # ----------------------------------------------
 
+    # Create chunks
     chunks = create_chunks(
-        text,
-        CHUNK_SIZE,
-        CHUNK_OVERLAP
+        text
     )
+
 
     print(
         f"\nTotal chunks: {len(chunks)}"
     )
 
-    # ----------------------------------------------
-    # Build JSON
-    # ----------------------------------------------
 
+    # Build final JSON
     chunk_data = []
 
-    for index, chunk in enumerate(
-        chunks
-    ):
 
-        chunk_data.append({
+    for index, chunk in enumerate(chunks):
 
-            "chunk_id": index,
+        chunk_data.append(
+            {
+                "chunk_id": index,
 
-            "text": chunk["text"],
+                "text": chunk["text"],
 
-            "metadata": {
+                "metadata":
+                {
+                    "source": "mca_syllabus.pdf",
 
-                "source":
-                    "mca_syllabus.pdf",
+                    "source_type": "pdf",
 
-                "page":
-                    chunk["page"],
+                    "title": "MCA Syllabus",
 
-                "chunk_size":
-                    len(chunk["text"]),
+                    "url": None,
 
-                "start_position":
-                    chunk["start"],
+                    "page":
+                        chunk["start_page"],
 
-                "end_position":
-                    chunk["end"]
+                    "start_page":
+                        chunk["start_page"],
+
+                    "end_page":
+                        chunk["end_page"],
+
+                    "chunk_size":
+                        len(chunk["text"]),
+
+                    "start_position":
+                        chunk["start"],
+
+                    "end_position":
+                        chunk["end"]
+                }
             }
-        })
+        )
 
-    # ----------------------------------------------
+
     # Save
-    # ----------------------------------------------
-
     OUTPUT_PATH.write_text(
-
         json.dumps(
             chunk_data,
             indent=2,
             ensure_ascii=False
         ),
-
         encoding="utf-8"
     )
 
+
+    # Summary
     print(
         "\n✅ Page-aware chunking completed!"
     )
@@ -380,32 +419,41 @@ def main():
         f"Saved to:\n{OUTPUT_PATH}"
     )
 
-    # ----------------------------------------------
-    # Show first chunks
-    # ----------------------------------------------
 
-    print("\n" + "=" * 55)
+    print(
+        "\n" + "=" * 60
+    )
 
     print(
         "FIRST 5 CHUNKS"
     )
 
-    print("=" * 55)
+    print(
+        "=" * 60
+    )
+
 
     for chunk in chunk_data[:5]:
 
+        metadata = chunk["metadata"]
+
         print(
-            f"\n--- Chunk {chunk['chunk_id']} ---"
+            f"\nChunk {chunk['chunk_id']}"
         )
 
         print(
-            f"Page: "
-            f"{chunk['metadata']['page']}"
+            f"Page: {metadata['page']}"
+        )
+
+        print(
+            f"Page range: "
+            f"{metadata['start_page']} → "
+            f"{metadata['end_page']}"
         )
 
         print(
             f"Characters: "
-            f"{chunk['metadata']['chunk_size']}"
+            f"{metadata['chunk_size']}"
         )
 
         print(

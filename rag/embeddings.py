@@ -22,7 +22,7 @@ OUTPUT_PATH = (
     / "data"
     / "processed"
     / "embeddings.json"
-)
+)       
 
 
 # --------------------------------------------------

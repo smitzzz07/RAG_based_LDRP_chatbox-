@@ -22,7 +22,7 @@ OUTPUT_PATH = (
 # OFFICIAL LDRP WEBSITE
 # ==================================================
 
-URL = "https://ldrp.ac.in"
+URL = "https://ldrp.ac.in/index.html"
 
 
 # ==================================================
@@ -49,7 +49,8 @@ def load_website(url):
 
     response.raise_for_status()
 
-    # Use UTF-8 when decoding the response
+    # Force UTF-8 decoding because the current
+    # website content contains UTF-8 characters.
     html = response.content.decode(
         "utf-8",
         errors="replace"
@@ -83,7 +84,7 @@ def extract_text(html):
         )
 
     # ----------------------------------------------
-    # Remove unnecessary elements
+    # Remove non-content elements
     # ----------------------------------------------
 
     for tag in soup([
@@ -97,7 +98,7 @@ def extract_text(html):
         tag.decompose()
 
     # ----------------------------------------------
-    # Find main page content
+    # Prefer main content
     # ----------------------------------------------
 
     main_content = (
@@ -135,7 +136,7 @@ def extract_text(html):
         lines.append(line)
 
     # ----------------------------------------------
-    # Remove immediate duplicate lines
+    # Remove immediate duplicates
     # ----------------------------------------------
 
     cleaned_lines = []
@@ -201,7 +202,7 @@ def main():
         )
 
         # ------------------------------------------
-        # Build JSON data
+        # Build JSON
         # ------------------------------------------
 
         data = {
@@ -262,10 +263,6 @@ def main():
         print(
             f"Saved to:\n{OUTPUT_PATH}"
         )
-
-        # ------------------------------------------
-        # Show text preview
-        # ------------------------------------------
 
         print(
             "\n" + "=" * 60
