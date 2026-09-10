@@ -1,0 +1,619 @@
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> python chunker.py
+============================================================
+       LDRP RAG - PAGE AWARE CHUNKING
+============================================================
+
+Input characters: 2530
+Chunk size: 500
+Chunk overlap: 100
+
+Total chunks: 7
+
+✅ Page-aware chunking completed!
+Saved to:
+E:\smit_parmar_35\Project\ldrp-rag\data\processed\chunks.json
+
+============================================================
+FIRST 5 CHUNKS
+============================================================
+
+Chunk 0
+Page: 1
+Page range: 1 → 1
+Characters: 455
+Kadi Sarva Vishwavidyalaya
+Scheme for Teaching and Examination — Master of Computer Application (MCA 2 Years) (CBCS)
+MCA Syllabus — Semester-wise Course Structure
+SEMESTER – I
+Code
+Subject Name
+Credit
+L
+P
+CEC
+MID
+External
+Total
+Hours
+MCA-11
+Object Oriented Technology
+5
+3
+4
+25
+25
+50
+150
+MCA-12
+Web De
+
+Chunk 1
+Page: 1
+Page range: 1 → 2
+Characters: 459
+Database Management Systems
+5
+3
+4
+25
+25
+50
+150
+MCA-14
+Advanced Networking
+4
+3
+2
+25
+25
+50
+150
+MCA-15
+Programming Using Open Source
+4
+3
+2
+25
+25
+50
+150
+MCA-16
+Mini Project – I
+1
+–
+2
+0
+50
+0
+50
+TOTAL
+24
+15
+18
+125
+250
+800
+SEMESTER – II
+
+Code
+Subject Name
+Credit
+L
+P
+CEC
+MID
+External
+Total
+Hours
+MCA-21
+Adva
+
+Chunk 2
+Page: 2
+Page range: 2 → 2
+Characters: 492
+en Source Technology
+5
+3
+4
+25
+25
+50
+150
+MCA-23
+Optimization Techniques
+3
+3
+–
+25
+25
+50
+100
+MCA-24(A)
+Mobile Programming
+5
+3
+4
+25
+25
+50
+150
+MCA-25(A)
+Next Generation Application Development
+5
+3
+4
+25
+25
+50
+150
+MCA-26(A)
+Mobile Cross Platform Development (NEW)
+3
+3
+–
+25
+25
+50
+100
+MCA-24(B)
+Database Admin
+
+Chunk 3
+Page: 2
+Page range: 2 → 2
+Characters: 485
+Next Generation Databases
+3
+3
+–
+25
+25
+50
+100
+MCA-24(C)
+Wireless Sensor Networks
+5
+3
+4
+25
+25
+50
+150
+MCA-25(C)
+Information & Network Security
+5
+3
+4
+25
+25
+50
+150
+MCA-26(C)
+Heterogeneous Networks
+3
+3
+–
+25
+25
+50
+100
+TOTAL
+26
+18
+16
+150
+300
+800
+SEMESTER – III
+Code
+Subject Name
+Credit
+L
+P
+CEC
+MID
+External
+T
+
+Chunk 4
+Page: 2
+Page range: 2 → 2
+Characters: 494
+orensic Science
+4
+3
+2
+25
+25
+50
+150
+MCA-33
+Cloud Infrastructure & Services
+4
+4
+–
+25
+25
+50
+100
+MCA-34
+Machine Learning
+4
+3
+2
+25
+25
+50
+150
+MCA-35
+Internet of Things
+4
+3
+2
+25
+25
+50
+150
+MCA-36(A)
+Software Testing & Quality Assurance
+4
+3
+2
+25
+25
+50
+150
+MCA-36(B)
+Advanced Web Development Technologies
+4
+3
+2
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> python combine_chunks.py
+============================================================
+       LDRP RAG - COMBINE KNOWLEDGE
+============================================================
+
+📄 Loading PDF chunks...
+✅ PDF chunks loaded: 7
+✅ PDF metadata prepared
+
+🌐 Loading website chunks...
+✅ Website chunks loaded: 476
+✅ Website metadata prepared
+✅ All chunk IDs are unique
+✅ No empty chunks found
+
+============================================================
+       KNOWLEDGE BASE SUMMARY
+============================================================
+📄 PDF chunks:      7
+🌐 Website chunks:  476
+📚 Total chunks:    483
+============================================================
+
+✅ Knowledge base created successfully!
+
+📁 Saved to:
+E:\smit_parmar_35\Project\ldrp-rag\data\processed\all_chunks.json
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> python embeddings.py
+====================================
+       LDRP RAG - EMBEDDINGS
+====================================
+✅ Loaded 483 chunks
+
+Loading embedding model...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 103/103 [00:00<00:00, 4649.85it/s]
+✅ Embedding model loaded
+
+Creating embeddings...
+Batches: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 16/16 [00:06<00:00,  2.39it/s]
+✅ Embeddings created
+Embedding dimensions: 384
+
+====================================
+SUCCESS
+====================================
+Saved to:
+E:\smit_parmar_35\Project\ldrp-rag\data\processed\embeddings.json
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> python vector_store.py
+============================================================
+       LDRP RAG - VECTOR STORE
+============================================================
+
+📚 Loading embeddings...
+✅ Loaded 483 chunks
+
+🔢 Converting embeddings to NumPy...
+Embedding shape: (483, 384)
+✅ Number of vectors: 483
+✅ Vector dimension: 384
+
+🔎 Creating FAISS IndexFlatL2...
+📥 Adding vectors to FAISS...
+✅ FAISS vectors: 483
+
+============================================================
+       FAISS BUILD SUCCESSFUL
+============================================================
+📚 Chunks:       483
+🧠 Vectors:      483
+📐 Dimensions:   384
+🔎 Index type:   IndexFlatL2
+
+📁 Saved to:
+E:\smit_parmar_35\Project\ldrp-rag\data\processed\faiss.index
+
+✅ Vector database is ready!
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> python retriever.py   
+Loading embedding model...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 103/103 [00:00<00:00, 16157.28it/s]
+✅ Embedding model loaded
+Loading FAISS index...
+✅ FAISS index loaded
+Total vectors: 483
+Loading chunks...
+✅ Loaded 483 chunks
+✅ FAISS and chunk count match
+
+
+======================================================================
+              LDRP RAG ASSISTANT
+======================================================================
+
+Knowledge Base:
+  📚 Chunks: 483
+  🔎 FAISS vectors: 483
+  🧠 Embedding model: all-MiniLM-L6-v2
+  🎯 Candidate-K: 30
+  🎯 Final Top-K: 5
+  📏 Threshold: 1.5
+
+Ask a question about LDRP: What is the credit of Software Testing?
+
+🔎 Searching LDRP knowledge base...
+📌 LDRP question detected: True
+
+======================================================================
+QUERY
+======================================================================
+What is the credit of Software Testing?
+
+======================================================================
+RERANKED RESULTS
+======================================================================
+
+
+----------------------------------------------------------------------
+RANK           : 1
+CHUNK ID       : 4
+FAISS DISTANCE : 1.2330
+KEYWORD SCORE  : 12
+PDF BOOST      : 5
+FINAL SCORE    : 15.7670
+SOURCE TYPE    : pdf
+SOURCE         : mca_syllabus.pdf
+TITLE          : MCA Syllabus
+URL            : None
+PAGE           : 2
+
+TEXT:
+orensic Science
+4
+3
+2
+25
+25
+50
+150
+MCA-33
+Cloud Infrastructure & Services
+4
+4
+–
+25
+25
+50
+100
+MCA-34
+Machine Learning
+4
+3
+2
+25
+25
+50
+150
+MCA-35
+Internet of Things
+4
+3
+2
+25
+25
+50
+150
+MCA-36(A)
+Software Testing & Quality Assurance
+4
+3
+2
+25
+25
+50
+150
+MCA-36(B)
+Advanced Web Development Technologies
+4
+3
+2
+25
+25
+50
+150
+MCA-36(C)
+Digital Marketing
+4
+3
+2
+25
+25
+50
+150
+MCA-36(D)
+Blockchain Technology
+4
+3
+2
+25
+25
+50
+150
+MCA-37
+Mini Project – II
+2
+–
+4
+0
+25
+25
+50
+TOTAL
+26
+19
+14
+150
+300
+900
+SEMESTER – IV
+
+
+----------------------------------------------------------------------
+RANK           : 2
+CHUNK ID       : 1146
+FAISS DISTANCE : 1.2561
+KEYWORD SCORE  : 12
+PDF BOOST      : 0
+FINAL SCORE    : 10.7439
+SOURCE TYPE    : website
+SOURCE         : LDRP-ITR Official Website
+TITLE          : MCA New CBCS Syllabus 2020 | LDRP-ITR
+URL            : https://ldrp.ac.in/mca-new-cbcs-syllabus-2020/index.html
+PAGE           : None
+
+TEXT:
+MCA-36 ELECTIVE: Â MCA-36 (A) SOFTWARE TESTING & QUALITY ASSURANCE 4 3 2 25 50 150 MCA-36 (B) ADV AN CED W EB DEVELOPMENT TECHNOLOGIES 4 3 2 25 50 150 MCA-36 (C) DIGITAL MARKETING 4 3 2 25 50 150 MCA-36 (D) BLOCK CHAIN TECHNOLOGY 4 3 2 25 50 150 MCA-37 MINI PROJECT â II 2 – 4 0 25 0 25 50 Â TOTAL 26 19 14 150 175 300 275 900 SEMESTER – IV MCA-41 INDUSTRY PROJECT 24 16 Week (48 Hrs at Industry Side per week) 0 200 0 500 700
+
+
+----------------------------------------------------------------------
+RANK           : 3
+CHUNK ID       : 1145
+FAISS DISTANCE : 1.2866
+KEYWORD SCORE  : 12
+PDF BOOST      : 0
+FINAL SCORE    : 10.7134
+SOURCE TYPE    : website
+SOURCE         : LDRP-ITR Official Website
+TITLE          : MCA New CBCS Syllabus 2020 | LDRP-ITR
+URL            : https://ldrp.ac.in/mca-new-cbcs-syllabus-2020/index.html
+PAGE           : None
+
+TEXT:
+50 MCA-25 (C) INFORMATION & NETWORK SECURITY 5 3 4 25 50 150 MCA-26 (C) HETEROGENEOUS NETWORKS 3 – 25 50 – 100 Â TOTAL 26 18 16 150 300 200 800 SEMESTER – III MCA-31 ARTIFICIAL INTELLIGENCE 4 3 2 25 50 150 MCA-32 CYBER SECURITY & FORENSIC SCIENCE 4 3 2 25 50 150 MCA-33 CLOUD INFRASTRUCTURE & SERVICES 4 – 25 50 – 100 MCA-34 MACHINE LEARNING 4 3 2 25 50 150 MCA-35 INTERNET OF THI NGS 4 3 2 25 50 150 MCA-36 ELECTIVE: Â MCA-36 (A) SOFTWARE TESTING & QUALITY ASSURANCE 4 3 2 25 50 150 MCA-36 (B) ADV A
+
+
+----------------------------------------------------------------------
+RANK           : 4
+CHUNK ID       : 1466
+FAISS DISTANCE : 1.2866
+KEYWORD SCORE  : 12
+PDF BOOST      : 0
+FINAL SCORE    : 10.7134
+SOURCE TYPE    : website
+SOURCE         : LDRP-ITR Official Website
+TITLE          : MCA | LDRP-ITR
+URL            : https://ldrp.ac.in/mca/index.html
+PAGE           : None
+
+TEXT:
+50 MCA-25 (C) INFORMATION & NETWORK SECURITY 5 3 4 25 50 150 MCA-26 (C) HETEROGENEOUS NETWORKS 3 – 25 50 – 100 Â TOTAL 26 18 16 150 300 200 800 SEMESTER – III MCA-31 ARTIFICIAL INTELLIGENCE 4 3 2 25 50 150 MCA-32 CYBER SECURITY & FORENSIC SCIENCE 4 3 2 25 50 150 MCA-33 CLOUD INFRASTRUCTURE & SERVICES 4 – 25 50 – 100 MCA-34 MACHINE LEARNING 4 3 2 25 50 150 MCA-35 INTERNET OF THI NGS 4 3 2 25 50 150 MCA-36 ELECTIVE: Â MCA-36 (A) SOFTWARE TESTING & QUALITY ASSURANCE 4 3 2 25 50 150 MCA-36 (B) ADV A
+
+
+----------------------------------------------------------------------
+RANK           : 5
+CHUNK ID       : 1063
+FAISS DISTANCE : 1.2361
+KEYWORD SCORE  : 4
+PDF BOOST      : 0
+FINAL SCORE    : 2.7639
+SOURCE TYPE    : website
+SOURCE         : LDRP-ITR Official Website
+TITLE          : Scheme IT-CBCS | LDRP-ITR
+URL            : https://ldrp.ac.in/scheme-it-cbcs/index.html
+PAGE           : None
+
+TEXT:
+be cleared by the student as a mandatory non-credit course before completion of his/her graduation. Â Elective – II CT604A-N Â Android Programming (Category: Application) CT604B-N Â iOS Programming (Category: Application) CT604C-N Embedded Systems (Category: Systems) CT604D-N Advanced Algorithms (Category: Theory & Algorithm) CT604E-N Â Machine Learning (Category: Data Science & Machine Intelligence) IT604F-N Software Project Management (Category: Other) IT604G-N Management Information System (
+
+Best FAISS distance: 1.2330
+Best keyword score: 12
+
+🤖 Generating answer with Gemini...
+
+📡 Gemini request (attempt 1/3)...
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+✅ Gemini response received
+
+
+======================================================================
+                    ANSWER
+======================================================================
+Based on the provided context, the credit for **Software Testing & Quality Assurance** (MCA-36(A)) is **4**.
+
+
+======================================================================
+                    SOURCES
+======================================================================
+
+Chunk ID: 4
+Source: mca_syllabus.pdf
+Source Type: pdf
+Title: MCA Syllabus
+URL: None
+Page: 2
+Distance: 1.2330
+
+Chunk ID: 1146
+Source: LDRP-ITR Official Website
+Source Type: website
+Title: MCA New CBCS Syllabus 2020 | LDRP-ITR
+URL: https://ldrp.ac.in/mca-new-cbcs-syllabus-2020/index.html
+Page: None
+Distance: 1.2561
+
+Chunk ID: 1145
+Source: LDRP-ITR Official Website
+Source Type: website
+Title: MCA New CBCS Syllabus 2020 | LDRP-ITR
+URL: https://ldrp.ac.in/mca-new-cbcs-syllabus-2020/index.html
+Page: None
+Distance: 1.2866
+
+Chunk ID: 1466
+Source: LDRP-ITR Official Website
+Source Type: website
+Title: MCA | LDRP-ITR
+URL: https://ldrp.ac.in/mca/index.html
+Page: None
+Distance: 1.2866
+
+Chunk ID: 1063
+Source: LDRP-ITR Official Website
+Source Type: website
+Title: Scheme IT-CBCS | LDRP-ITR
+URL: https://ldrp.ac.in/scheme-it-cbcs/index.html
+Page: None
+Distance: 1.2361
+PS E:\smit_parmar_35\Project\ldrp-rag\rag> 
