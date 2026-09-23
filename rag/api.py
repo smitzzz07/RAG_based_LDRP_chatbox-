@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from retriever import ask_question
+from rag.retriever import ask_question
 
 app = FastAPI(
     title="LDRP RAG API",

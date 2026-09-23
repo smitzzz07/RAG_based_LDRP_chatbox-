@@ -20,12 +20,16 @@ function App() {
   ]);
 
   const [question, setQuestion] = useState("");
+  const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [expandedSources, setExpandedSources] = useState({});
 
   const sendMessage = async (text = question) => {
     const userQuestion = text.trim();
 
     if (!userQuestion || loading) return;
+
+    setStarted(true);
 
     setMessages((prev) => [
       ...prev,
@@ -87,6 +91,8 @@ function App() {
   };
 
   const clearChat = () => {
+    setExpandedSources({});
+    setStarted(false);
     setMessages([
       {
         role: "assistant",
@@ -146,10 +152,10 @@ function App() {
       </header>
 
       {/* Main */}
-      <main className="chat-container">
+      <main className={`chat-container ${started ? "chat-started" : ""}`}>
 
         {/* Hero */}
-        <section className="hero">
+        <section className={`hero ${started ? "hero-started" : ""}`}>
 
           <div className="ai-orb">
 
@@ -177,10 +183,15 @@ function App() {
             LDRP-ITR information and MCA resources.
           </p>
 
+          <div className="compact-chat-title">
+            <span className="compact-dot"></span>
+            LDRP AI
+          </div>
+
         </section>
 
         {/* Suggestions */}
-        <section className="suggestions">
+        <section className={`suggestions ${started ? "suggestions-hidden" : ""}`}>
 
           {suggestedQuestions.map((item, index) => (
 
@@ -210,7 +221,7 @@ function App() {
         </section>
 
         {/* Messages */}
-        <section className="messages">
+        <section className={`messages ${started ? "messages-visible" : ""}`}>
 
           {messages.map((message, index) => (
 
@@ -254,73 +265,75 @@ function App() {
                 </div>
 
                 {/* Sources */}
-                {message.sources &&
-                  message.sources.length > 0 && (
+                {message.sources && message.sources.length > 0 && (() => {
+                  const isExpanded = !!expandedSources[index];
+                  const visibleSources = isExpanded
+                    ? message.sources
+                    : message.sources.slice(0, 1);
+                  const hiddenCount = Math.max(message.sources.length - 1, 0);
 
+                  return (
                     <div className="sources">
-
                       <div className="sources-title">
                         <span>◈</span>
                         Sources
                       </div>
 
-                      {message.sources.map(
-                        (source, sourceIndex) => (
-
-                          <div
-                            className="source-card glass"
-                            key={sourceIndex}
-                          >
-
-                            <div className="source-icon">
-
-                              {source.source_type === "pdf"
-                                ? "📄"
-                                : "🌐"}
-
-                            </div>
-
-                            <div className="source-info">
-
-                              <strong>
-                                {source.title ||
-                                  source.source ||
-                                  "LDRP Source"}
-                              </strong>
-
-                              <span>
-
-                                {source.source_type === "pdf"
-                                  ? `PDF • Page ${
-                                      source.page ?? "N/A"
-                                    }`
-                                  : "Official LDRP Website"}
-
-                              </span>
-
-                            </div>
-
-                            {source.url && (
-
-                              <a
-                                href={source.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="source-open"
-                              >
-                                Open ↗
-                              </a>
-
-                            )}
-
+                      {visibleSources.map((source, sourceIndex) => (
+                        <div
+                          className="source-card glass"
+                          key={`${index}-${sourceIndex}`}
+                        >
+                          <div className="source-icon">
+                            {source.source_type === "pdf" ? "📄" : "🌐"}
                           </div>
 
-                        )
+                          <div className="source-info">
+                            <strong>
+                              {source.title ||
+                                source.source ||
+                                "LDRP Source"}
+                            </strong>
+
+                            <span>
+                              {source.source_type === "pdf"
+                                ? `PDF • Page ${source.page ?? "N/A"}`
+                                : "Official LDRP Website"}
+                            </span>
+                          </div>
+
+                          {source.url && (
+                            <a
+                              href={source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="source-open"
+                            >
+                              Open ↗
+                            </a>
+                          )}
+                        </div>
+                      ))}
+
+                      {message.sources.length > 1 && (
+                        <button
+                          type="button"
+                          className="sources-toggle"
+                          onClick={() =>
+                            setExpandedSources((prev) => ({
+                              ...prev,
+                              [index]: !isExpanded,
+                            }))
+                          }
+                        >
+                          {isExpanded
+                            ? "− Show less"
+                            : `+ View ${hiddenCount} more`}
+                        </button>
                       )}
-
                     </div>
-
-                  )}
+                  );
+                })()}
 
               </div>
 
@@ -370,7 +383,7 @@ function App() {
       </main>
 
       {/* Input */}
-      <footer className="input-area">
+      <footer className={`input-area ${started ? "input-started" : ""}`}>
 
         <div className="input-glow"></div>
 

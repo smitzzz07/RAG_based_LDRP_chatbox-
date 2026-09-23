@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from google import genai
@@ -46,11 +47,14 @@ MODEL_NAME = "gemini-3.6-flash"
 # ==================================================
 
 def generate_answer(prompt):
-
     """
     Send the prompt to Gemini and return the answer.
 
-    Automatically retries temporary Gemini failures.
+    Handles:
+    - 503 temporary server errors
+    - 429 quota/rate-limit errors
+    - empty responses
+    - other Gemini errors
     """
 
     max_retries = 3
@@ -71,28 +75,53 @@ def generate_answer(prompt):
 
             if response.text:
 
-                print(
-                    "✅ Gemini response received"
-                )
+                print("✅ Gemini response received")
 
-                return response.text
+                return response.text.strip()
+
+            print("⚠️ Gemini returned an empty response.")
 
             return (
-                "Gemini returned an empty response."
+                "Gemini returned an empty response. "
+                "Please try again."
             )
 
         except Exception as e:
 
-            print(
-                f"\n⚠️ Gemini request failed:"
-            )
-
-            print(
-                f"{type(e).__name__}: {e}"
-            )
-
-            # Retry temporary server errors
             error_text = str(e)
+
+            print("\n⚠️ Gemini request failed:")
+            print(f"{type(e).__name__}: {e}")
+
+            # ==================================================
+            # 429 - Quota / Rate Limit
+            # ==================================================
+
+            if (
+                "429" in error_text
+                or "RESOURCE_EXHAUSTED" in error_text
+            ):
+
+                print(
+                    "\n🚫 Gemini API quota has been exhausted."
+                )
+
+                print(
+                    "Please wait for the quota to reset "
+                    "or use a project with available quota."
+                )
+
+                return (
+                    "The AI generation service has reached "
+                    "its current Gemini API quota. "
+                    "Your question was successfully processed "
+                    "and the relevant sources were retrieved. "
+                    "Please try again after the quota resets."
+                )
+
+            # ==================================================
+            # 503 - Temporary Gemini server problem
+            # ==================================================
 
             if (
                 "503" in error_text
@@ -101,26 +130,34 @@ def generate_answer(prompt):
 
                 if attempt < max_retries:
 
-                    import time
-
                     wait_time = attempt * 3
 
                     print(
-                        f"⏳ Retrying in "
-                        f"{wait_time} seconds..."
+                        f"⏳ Gemini temporarily unavailable. "
+                        f"Retrying in {wait_time} seconds..."
                     )
 
-                    time.sleep(
-                        wait_time
-                    )
+                    time.sleep(wait_time)
 
                     continue
 
-            # Don't retry other errors blindly
+                return (
+                    "Gemini is temporarily unavailable. "
+                    "Please try again shortly."
+                )
+
+            # ==================================================
+            # Other errors
+            # ==================================================
+
             return (
-                "Unable to generate an answer "
-                "from Gemini at the moment."
+                "Unable to generate an answer from "
+                "Gemini at the moment."
             )
+
+    # ==================================================
+    # All retries failed
+    # ==================================================
 
     return (
         "Gemini is temporarily unavailable. "

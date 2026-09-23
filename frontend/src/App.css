@@ -941,3 +941,683 @@
     font-size: 11px;
   }
 }
+/* ================================
+   SOURCE TOGGLE - GLASS BUTTON
+   ================================ */
+
+.sources-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 10px;
+  padding: 9px 16px;
+
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 18px rgba(0, 0, 0, 0.18);
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.sources-toggle:hover {
+  background: rgba(124, 58, 237, 0.14);
+  border-color: rgba(139, 92, 246, 0.55);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 0 18px rgba(124, 58, 237, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  transform: translateY(-1px);
+}
+
+.sources-toggle:active {
+  transform: translateY(0);
+  background: rgba(124, 58, 237, 0.2);
+}
+/* ================================
+   STICKY HEADER
+   ================================ */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  /* Keep the glass effect while scrolling */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  background: rgba(8, 8, 20, 0.72);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================================
+   PREMIUM CHAT TRANSITION
+   Landing -> ChatGPT-style conversation
+   ========================================================= */
+
+.chat-container {
+  transition:
+    padding-top 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero {
+  position: relative;
+  z-index: 4;
+  transition:
+    transform 0.78s cubic-bezier(0.22, 1, 0.36, 1),
+    text-align 0.5s ease,
+    margin 0.78s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.compact-chat-title {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-50%) translateX(-12px);
+  pointer-events: none;
+  color: #d9d2ef;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition:
+    opacity 0.4s ease 0.25s,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+}
+
+.compact-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9a72ff;
+  box-shadow: 0 0 14px rgba(154, 114, 255, 0.85);
+}
+
+/* Before the first question: keep the beautiful centered landing page. */
+.messages {
+  opacity: 0;
+  transform: translateY(18px);
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 0.7s ease;
+}
+
+.message-prestart {
+  display: none;
+}
+
+/* After first send: hero gently parks toward the upper-left. */
+.chat-started {
+  padding-top: 22px;
+}
+
+.chat-started .hero {
+  text-align: left;
+  transform: translate3d(-315px, -18px, 0) scale(0.58);
+  transform-origin: center top;
+  margin-bottom: -145px;
+}
+
+.chat-started .hero .ai-orb,
+.chat-started .hero .hero-badge,
+.chat-started .hero > p {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.chat-started .hero h2 {
+  margin-left: 0;
+}
+
+.chat-started .hero h2 span {
+  display: none;
+}
+
+.chat-started .compact-chat-title {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.messages-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 5000px;
+  overflow: visible;
+  pointer-events: auto;
+  transition-delay: 0.18s;
+}
+
+.suggestions-hidden {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.98);
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.45s ease,
+    max-height 0.6s ease,
+    margin 0.6s ease;
+}
+
+/* Input starts as a floating command bar, then docks at the bottom. */
+.input-area {
+  bottom: 10.5%;
+  background: transparent;
+  border-top: none;
+  padding: 15px 20px 12px;
+  transition:
+    bottom 0.78s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.55s ease,
+    border-color 0.55s ease,
+    padding 0.55s ease;
+}
+
+.input-wrapper {
+  max-width: 720px;
+  min-height: 64px;
+  border-radius: 21px;
+  transition:
+    max-width 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    min-height 0.5s ease,
+    border-radius 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+.input-area > p {
+  transition: opacity 0.3s ease;
+}
+
+.input-started {
+  bottom: 0;
+  background: rgba(8, 8, 18, 0.78);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.input-started .input-wrapper {
+  max-width: 850px;
+  min-height: 58px;
+  border-radius: 17px;
+}
+
+.input-started > p {
+  opacity: 0.65;
+}
+
+/* Make the first answer feel like it is entering the conversation. */
+.messages-visible .message-row {
+  animation: premiumMessageIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.messages-visible .message-row:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.messages-visible .message-row:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+@keyframes premiumMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slightly more premium conversation spacing. */
+.chat-started .messages {
+  padding-bottom: 25px;
+}
+
+.chat-started .message-bubble {
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+@media (max-width: 700px) {
+  .chat-started .hero {
+    transform: translate3d(-120px, -10px, 0) scale(0.55);
+    margin-bottom: -125px;
+  }
+
+  .input-area {
+    bottom: 8%;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .input-started {
+    bottom: 0;
+  }
+
+  .input-started .input-wrapper,
+  .input-wrapper {
+    border-radius: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .messages,
+  .suggestions,
+  .input-area,
+  .input-wrapper,
+  .compact-chat-title {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   FINAL LANDING / CHAT LAYOUT
+   Landing keeps the full hero + sample questions.
+   After the first question, the hero stays visible but
+   becomes a compact premium header instead of disappearing.
+   ========================================================= */
+
+/* ---------- LANDING ---------- */
+
+.suggestions {
+  display: grid;
+}
+
+.hero {
+  text-align: center;
+}
+
+.hero .ai-orb {
+  width: 92px;
+  height: 92px;
+  margin-bottom: 20px;
+}
+
+.hero .orb-core {
+  width: 66px;
+  height: 66px;
+  font-size: 28px;
+}
+
+.hero .ring-a {
+  width: 84px;
+  height: 36px;
+}
+
+.hero .ring-b {
+  width: 88px;
+  height: 38px;
+}
+
+.hero h2 {
+  font-size: clamp(32px, 4.1vw, 48px);
+  letter-spacing: -2px;
+}
+
+.hero > p {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+/* ---------- AFTER FIRST QUESTION ---------- */
+
+/*
+   Do NOT hide the hero.
+   It becomes a compact version of the landing hero.
+*/
+.chat-started {
+  padding-top: 28px;
+}
+
+.chat-started .hero {
+  text-align: left;
+  transform: none;
+  transform-origin: center top;
+  margin-bottom: 28px;
+
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+
+  min-height: 58px;
+}
+
+/* Small orb remains visible */
+.chat-started .hero .ai-orb {
+  grid-column: 1;
+  grid-row: 1 / 3;
+
+  width: 58px;
+  height: 58px;
+  margin: 0;
+
+  transform: none;
+}
+
+.chat-started .hero .orb-core {
+  width: 43px;
+  height: 43px;
+  font-size: 18px;
+}
+
+.chat-started .hero .ring-a {
+  width: 55px;
+  height: 23px;
+}
+
+.chat-started .hero .ring-b {
+  width: 58px;
+  height: 25px;
+}
+
+/* Keep the badge */
+.chat-started .hero .hero-badge {
+  grid-column: 2;
+  grid-row: 1;
+
+  display: inline-block;
+  width: fit-content;
+
+  margin: 0 0 4px;
+  padding: 3px 8px;
+
+  font-size: 7px;
+  letter-spacing: 1.3px;
+}
+
+/* Keep BOTH lines of the main title */
+.chat-started .hero h2 {
+  grid-column: 2;
+  grid-row: 2;
+
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.02;
+  letter-spacing: -1px;
+}
+
+/* Keep the gradient second line */
+.chat-started .hero h2 span {
+  display: inline;
+}
+
+/* Small description remains visible */
+.chat-started .hero > p {
+  grid-column: 2;
+  grid-row: 3;
+
+  opacity: 1;
+  pointer-events: auto;
+
+  margin: 5px 0 0;
+  max-width: 560px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Hide the old compact "LDRP AI" label because the real hero remains */
+.chat-started .compact-chat-title {
+  display: none;
+}
+
+/* Suggestions disappear only AFTER the first question */
+.chat-started .suggestions {
+  display: none;
+}
+
+/* Messages are revealed below the compact hero */
+.messages-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 5000px;
+  overflow: visible;
+  pointer-events: auto;
+  transition-delay: 0.08s;
+}
+
+/* Landing state: messages remain hidden */
+.messages {
+  opacity: 0;
+  transform: translateY(18px);
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.45s ease,
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 0.7s ease;
+}
+
+/* Smooth first-answer entrance */
+.messages-visible .message-row {
+  animation: premiumMessageIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.messages-visible .message-row:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.messages-visible .message-row:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+@keyframes premiumMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input:
+   landing = floating in the hero area
+   chat = fixed bottom bar
+*/
+.input-area {
+  bottom: 10.5%;
+  background: transparent;
+  border-top: none;
+  padding: 15px 20px 12px;
+
+  transition:
+    bottom 0.78s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.55s ease,
+    border-color 0.55s ease,
+    padding 0.55s ease;
+}
+
+.input-wrapper {
+  max-width: 720px;
+  min-height: 64px;
+  border-radius: 21px;
+
+  transition:
+    max-width 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    min-height 0.5s ease,
+    border-radius 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+.input-started {
+  bottom: 0;
+  background: rgba(8, 8, 18, 0.78);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.input-started .input-wrapper {
+  max-width: 850px;
+  min-height: 58px;
+  border-radius: 17px;
+}
+
+.input-started > p {
+  opacity: 0.65;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 700px) {
+  .hero .ai-orb {
+    width: 82px;
+    height: 82px;
+  }
+
+  .hero .orb-core {
+    width: 60px;
+    height: 60px;
+    font-size: 25px;
+  }
+
+  .hero h2 {
+    font-size: 34px;
+    letter-spacing: -1.4px;
+  }
+
+  .hero > p {
+    font-size: 12px;
+  }
+
+  .chat-started .hero {
+    grid-template-columns: 48px 1fr;
+    column-gap: 10px;
+    min-height: 48px;
+    margin-bottom: 20px;
+  }
+
+  .chat-started .hero .ai-orb {
+    width: 48px;
+    height: 48px;
+  }
+
+  .chat-started .hero .orb-core {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  .chat-started .hero h2 {
+    font-size: 18px;
+  }
+
+  .chat-started .hero > p {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .messages,
+  .suggestions,
+  .input-area,
+  .input-wrapper,
+  .compact-chat-title {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+/* =========================================================
+   FIX: SHOW CHAT AFTER FIRST QUESTION
+   ========================================================= */
+
+.chat-started .messages,
+.chat-started .messages.messages-visible {
+  display: flex !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  max-height: none !important;
+  height: auto !important;
+
+  overflow: visible !important;
+  pointer-events: auto !important;
+
+  transform: translateY(0) !important;
+
+  flex-direction: column;
+  gap: 25px;
+
+  position: relative;
+  z-index: 5;
+}
+
+/* Make sure individual messages are visible */
+.chat-started .messages .message-row {
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  display: flex !important;
+  position: relative;
+  z-index: 5;
+}
+
+/* Keep the answer bubble visible */
+.chat-started .message-content,
+.chat-started .message-bubble {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Don't let the hero cover the conversation */
+.chat-started .hero {
+  position: relative;
+  z-index: 2;
+}
+
+.chat-started .messages {
+  position: relative;
+  z-index: 5;
+}

@@ -4,16 +4,18 @@ import faiss
 
 from sentence_transformers import SentenceTransformer
 
-from prompt import build_rag_prompt
-from llm import generate_answer
+from rag.prompt import build_rag_prompt
+from rag.llm import generate_answer
 
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 # CONFIGURATION
 # ============================================================
 
-INDEX_PATH = "../data/processed/faiss.index"
-EMBEDDINGS_PATH = "../data/processed/embeddings.json"
+INDEX_PATH = BASE_DIR / "data" / "processed" / "faiss.index"
+EMBEDDINGS_PATH = BASE_DIR / "data" / "processed" / "embeddings.json"
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 
@@ -44,7 +46,7 @@ print("✅ Embedding model loaded")
 print("Loading FAISS index...")
 
 index = faiss.read_index(
-    INDEX_PATH
+    str(BASE_DIR / "data" / "processed" / "faiss.index")
 )
 
 print("✅ FAISS index loaded")
