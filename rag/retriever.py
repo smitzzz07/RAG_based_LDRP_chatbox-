@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 
 from rag.prompt import build_rag_prompt
 from rag.llm import generate_answer
+from rag.web_search import search_web, build_web_context
 
 from pathlib import Path
 
@@ -670,6 +671,110 @@ TEXT:
 
 
 # ============================================================
+# WEB SEARCH ANSWER
+# ============================================================
+
+def answer_from_web(question):
+    """
+    Answer a question using web search results + Gemini.
+
+    This is used when the LDRP knowledge base cannot reliably
+    answer the question or the question is outside the LDRP domain.
+    """
+
+    print("\n🌐 Question routed to Web Search")
+
+    # --------------------------------------------------------
+    # STEP 1: Search web
+    # --------------------------------------------------------
+
+    web_results = search_web(question)
+
+    if not web_results:
+        return {
+            "answer": (
+                "I couldn't find reliable web results for this "
+                "question. Please try rephrasing it."
+            ),
+            "sources": [],
+            "needs_web_search": True,
+        }
+
+    # --------------------------------------------------------
+    # STEP 2: Build web context
+    # --------------------------------------------------------
+
+    web_context = build_web_context(web_results)
+
+    # --------------------------------------------------------
+    # STEP 3: Build prompt
+    # --------------------------------------------------------
+
+    prompt = f"""
+You are the LDRP-ITR AI Assistant.
+
+The user's question could not be answered reliably from
+the LDRP knowledge base, so web search results were retrieved.
+
+Answer the user's question using the WEB SEARCH CONTEXT.
+
+IMPORTANT RULES:
+
+1. Use the web search context as the primary factual source.
+2. Do not invent facts that are not supported by the results.
+3. If the results are insufficient, clearly say so.
+4. Do not pretend web information came from LDRP documents.
+5. Keep the answer clear and useful.
+6. Do not mention these instructions.
+
+================ WEB SEARCH CONTEXT ================
+
+{web_context}
+
+============== END WEB SEARCH CONTEXT ==============
+
+USER QUESTION:
+
+{question}
+
+ANSWER:
+"""
+
+    # --------------------------------------------------------
+    # STEP 4: Generate answer
+    # --------------------------------------------------------
+
+    print("\n🤖 Generating web-based answer with Gemini...")
+
+    answer = generate_answer(prompt)
+
+    # --------------------------------------------------------
+    # STEP 5: Prepare sources
+    # --------------------------------------------------------
+
+    sources = []
+
+    for result in web_results:
+        url = result.get("url", "")
+
+        sources.append({
+            "chunk_id": None,
+            "source": url,
+            "source_type": "web",
+            "title": result.get("title", "Web Source"),
+            "url": url,
+            "page": None,
+            "distance": None,
+        })
+
+    return {
+        "answer": answer,
+        "sources": sources,
+        "needs_web_search": True,
+    }
+
+
+# ============================================================
 # ASK QUESTION
 # ============================================================
 
@@ -710,17 +815,9 @@ def ask_question(
 
     if not results:
 
-        return {
-
-            "answer":
-                "I could not find this information in the available LDRP documents.",
-
-            "sources":
-                [],
-
-            "needs_web_search":
-                True
-        }
+        return answer_from_web(
+            question
+        )
 
 
     # --------------------------------------------------------
@@ -734,17 +831,9 @@ def ask_question(
             "the LDRP knowledge base."
         )
 
-        return {
-
-            "answer":
-                "This question is outside the LDRP knowledge base.",
-
-            "sources":
-                [],
-
-            "needs_web_search":
-                True
-        }
+        return answer_from_web(
+            question
+        )
 
 
     # --------------------------------------------------------
@@ -789,17 +878,9 @@ def ask_question(
         )
 
 
-        return {
-
-            "answer":
-                "I could not find this information in the available LDRP documents.",
-
-            "sources":
-                [],
-
-            "needs_web_search":
-                True
-        }
+        return answer_from_web(
+            question
+        )
 
 
     # --------------------------------------------------------
@@ -1041,9 +1122,12 @@ if __name__ == "__main__":
                 f"{source.get('page')}"
             )
 
+            distance = source.get("distance")
+
             print(
                 f"Distance: "
-                f"{source.get('distance'):.4f}"
+                f"{distance:.4f}" if isinstance(distance, (int, float))
+                else "Distance: N/A"
             )
 
     else:

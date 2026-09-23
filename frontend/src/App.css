@@ -1621,3 +1621,106 @@
   position: relative;
   z-index: 5;
 }
+
+/* =========================================================
+   FINAL POSITIONING
+   Header = FIXED
+   Input Area = STICKY
+   ========================================================= */
+
+/* ---------- FIXED HEADER ---------- */
+
+.header {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  width: 100%;
+  height: 76px;
+
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 32px;
+
+  background: rgba(8, 8, 20, 0.82);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+
+/* ---------- FIXED INPUT AREA ---------- */
+
+.input-area {
+  position: fixed !important;
+
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+
+  width: 100%;
+
+  z-index: 2000;
+
+  padding: 15px 20px 12px;
+
+  background: rgba(8, 8, 18, 0.88);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  box-sizing: border-box;
+}
+
+
+/* ---------- CONTENT OFFSET FOR FIXED HEADER + INPUT ---------- */
+
+.chat-container {
+  padding-top: 105px;
+  padding-bottom: 145px;
+}
+
+
+/* ---------- INPUT CONTENT ---------- */
+
+.input-wrapper {
+  max-width: 850px;
+  margin: auto;
+}
+
+/* =========================================================
+   FINAL FIX — CHAT INPUT ALWAYS FIXED TO VIEWPORT
+   ========================================================= */
+
+.input-area {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 2000 !important;
+}
+
+.chat-container {
+  padding-bottom: 145px !important;
+}
+
+@media (max-width: 700px) {
+  .input-area {
+    bottom: 0 !important;
+    padding: 10px 10px 10px !important;
+  }
+
+  .chat-container {
+    padding-bottom: 135px !important;
+  }
+}

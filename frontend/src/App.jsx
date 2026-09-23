@@ -288,19 +288,23 @@ function App() {
                             {source.source_type === "pdf" ? "📄" : "🌐"}
                           </div>
 
-                          <div className="source-info">
-                            <strong>
-                              {source.title ||
-                                source.source ||
-                                "LDRP Source"}
-                            </strong>
+                         <div className="source-info">
+  <strong>
+    {source.title ||
+      source.source ||
+      "LDRP Source"}
+  </strong>
 
-                            <span>
-                              {source.source_type === "pdf"
-                                ? `PDF • Page ${source.page ?? "N/A"}`
-                                : "Official LDRP Website"}
-                            </span>
-                          </div>
+  <span>
+    {source.source_type === "web"
+      ? `Web Search${
+          source.url
+            ? ` • ${new URL(source.url).hostname.replace("www.", "")}`
+            : ""
+        }`
+      : `PDF • Page ${source.page ?? "N/A"}`}
+  </span>
+</div>
 
                           {source.url && (
                             <a
@@ -424,4 +428,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; 
