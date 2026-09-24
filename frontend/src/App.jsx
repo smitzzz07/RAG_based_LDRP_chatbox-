@@ -4,8 +4,15 @@ import "./App.css";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
-const API_URL = "http://127.0.0.1:8000/api/chat";
-const AUTH_API = "http://127.0.0.1:8000/api/auth";
+const API_BASE = "http://127.0.0.1:8000/api";
+const CHAT_API = `${API_BASE}/chat`;
+const AUTH_API = `${API_BASE}/auth`;
+
+const WELCOME_MESSAGE = {
+  role: "assistant",
+  content:
+    "Hello! 👋 I’m the LDRP-ITR AI Assistant. Ask me anything about LDRP, MCA syllabus, courses, and academic information.",
+};
 
 const suggestedQuestions = [
   "What is the credit of Software Testing?",
@@ -14,18 +21,10 @@ const suggestedQuestions = [
   "What is the total credit of Semester 3?",
 ];
 
-const initialMessages = [
-  {
-    role: "assistant",
-    content:
-      "Hello! 👋 I’m the LDRP-ITR AI Assistant. Ask me anything about LDRP, MCA syllabus, courses, and academic information.",
-  },
-];
-
 function getSavedUser() {
   try {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    const value = localStorage.getItem("user");
+    return value ? JSON.parse(value) : null;
   } catch {
     return null;
   }
@@ -37,11 +36,91 @@ function clearAuth() {
 }
 
 function ChatApp({ user, onLogout }) {
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   const [question, setQuestion] = useState("");
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [expandedSources, setExpandedSources] = useState({});
+  const [conversationId, setConversationId] = useState(null);
+
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const authHeaders = () => {
+    const token = localStorage.getItem("access_token");
+
+    return token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
+  };
+
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+
+    try {
+      const response = await fetch(`${CHAT_API}/history`, {
+        headers: {
+          ...authHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          onLogout();
+        }
+        return;
+      }
+
+      const data = await response.json();
+      setHistory(Array.isArray(data) ? data : []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadConversation = async (id) => {
+    if (loading || id === conversationId) return;
+
+    try {
+      const response = await fetch(`${CHAT_API}/${id}`, {
+        headers: {
+          ...authHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) onLogout();
+        return;
+      }
+
+      const data = await response.json();
+
+      const loadedMessages =
+        data.messages && data.messages.length > 0
+          ? data.messages.map((message) => ({
+              role: message.role,
+              content: message.content,
+              sources: message.sources || [],
+            }))
+          : [WELCOME_MESSAGE];
+
+      setConversationId(data.id);
+      setMessages(loadedMessages);
+      setStarted(loadedMessages.length > 1);
+      setExpandedSources({});
+      setQuestion("");
+    } catch {
+      // Keep the current chat if loading a previous conversation fails.
+    }
+  };
 
   const sendMessage = async (text = question) => {
     const userQuestion = text.trim();
@@ -52,7 +131,10 @@ function ChatApp({ user, onLogout }) {
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: userQuestion },
+      {
+        role: "user",
+        content: userQuestion,
+      },
     ]);
 
     setQuestion("");
@@ -61,24 +143,39 @@ function ChatApp({ user, onLogout }) {
     try {
       const token = localStorage.getItem("access_token");
 
-      const response = await fetch(API_URL, {
+      const body = {
+        question: userQuestion,
+      };
+
+      if (conversationId !== null) {
+        body.conversation_id = conversationId;
+      }
+
+      const response = await fetch(CHAT_API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token
-            ? { Authorization: `Bearer ${token}` }
-            : {}),
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          question: userQuestion,
-        }),
+        body: JSON.stringify(body),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("API request failed");
+        if (response.status === 401) {
+          onLogout();
+          return;
+        }
+
+        throw new Error(
+          data.detail || "Unable to generate an answer."
+        );
       }
 
-      const data = await response.json();
+      if (data.conversation_id) {
+        setConversationId(data.conversation_id);
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -89,13 +186,16 @@ function ChatApp({ user, onLogout }) {
           needsWebSearch: data.needs_web_search,
         },
       ]);
-    } catch {
+
+      await loadHistory();
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "I couldn't connect to the LDRP AI server. Please make sure the FastAPI backend is running.",
+            error.message ||
+            "I couldn't connect to the LDRP AI server.",
           error: true,
         },
       ]);
@@ -111,10 +211,40 @@ function ChatApp({ user, onLogout }) {
     }
   };
 
-  const clearChat = () => {
-    setExpandedSources({});
+  const newChat = () => {
+    setConversationId(null);
+    setMessages([WELCOME_MESSAGE]);
+    setQuestion("");
     setStarted(false);
-    setMessages(initialMessages);
+    setExpandedSources({});
+  };
+
+  const deleteConversation = async (event, id) => {
+    event.stopPropagation();
+
+    setDeletingId(id);
+
+    try {
+      const response = await fetch(`${CHAT_API}/${id}`, {
+        method: "DELETE",
+        headers: {
+          ...authHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) onLogout();
+        return;
+      }
+
+      setHistory((prev) => prev.filter((item) => item.id !== id));
+
+      if (conversationId === id) {
+        newChat();
+      }
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -129,7 +259,18 @@ function ChatApp({ user, onLogout }) {
       </div>
 
       <header className="header glass">
-        <div className="brand">
+        <div className="header-left">
+          <button
+            type="button"
+            className="header-menu"
+            onClick={() => setHistoryOpen((value) => !value)}
+            title={historyOpen ? "Hide chat history" : "Show chat history"}
+            aria-label="Toggle chat history"
+          >
+            ☰
+          </button>
+
+          <div className="brand">
           <div className="logo-3d">
             <span>L</span>
           </div>
@@ -140,13 +281,15 @@ function ChatApp({ user, onLogout }) {
           </div>
         </div>
 
+        </div>
+
         <div className="header-right">
           <div className="status">
             <span className="status-dot"></span>
             AI Online
           </div>
 
-          <button className="new-chat" onClick={clearChat}>
+          <button className="new-chat" onClick={newChat}>
             + New Chat
           </button>
 
@@ -164,6 +307,7 @@ function ChatApp({ user, onLogout }) {
               className="logout-button"
               onClick={onLogout}
               title="Logout"
+              aria-label="Logout"
             >
               ↪
             </button>
@@ -171,178 +315,308 @@ function ChatApp({ user, onLogout }) {
         </div>
       </header>
 
-      <main className={`chat-container ${started ? "chat-started" : ""}`}>
-        <section className={`hero ${started ? "hero-started" : ""}`}>
-          <div className="ai-orb">
-            <div className="orb-core">🎓</div>
-            <div className="orb-ring ring-a"></div>
-            <div className="orb-ring ring-b"></div>
-          </div>
-
-          <div className="hero-badge">✦ LDRP INTELLIGENCE</div>
-
-          <h2>
-            Ask anything.
-            <br />
-            <span>Get intelligent answers.</span>
-          </h2>
-
-          <p>
-            Your AI-powered academic assistant for LDRP-ITR information and
-            MCA resources.
-          </p>
-
-          <div className="compact-chat-title">
-            <span className="compact-dot"></span>
-            LDRP AI
-          </div>
-        </section>
-
-        <section
-          className={`suggestions ${started ? "suggestions-hidden" : ""}`}
-        >
-          {suggestedQuestions.map((item, index) => (
-            <button
-              className="suggestion glass"
-              key={item}
-              onClick={() => sendMessage(item)}
-              style={{ animationDelay: `${index * 0.08}s` }}
-            >
-              <span className="suggestion-icon">
-                {["📚", "🎓", "🔎", "📊"][index]}
+      <div className="workspace">
+        <aside className={`history-sidebar ${historyOpen ? "open" : "closed"}`}>
+          <div className="history-top">
+            <div className="history-heading">
+              <div className="history-title">
+                <span className="history-title-icon">◫</span>
+                <span>Chat History</span>
+              </div>
+              <span className="history-count">
+                {history.length}
               </span>
-              <span>{item}</span>
-              <span className="suggestion-arrow">→</span>
+            </div>
+
+            <button
+              className="history-new"
+              onClick={newChat}
+              title="New chat"
+            >
+              <span>＋</span>
+              <span>New chat</span>
             </button>
-          ))}
-        </section>
+          </div>
 
-        <section className={`messages ${started ? "messages-visible" : ""}`}>
-          {messages.map((message, index) => (
-            <div className={`message-row ${message.role}`} key={index}>
-              {message.role === "assistant" ? (
-                <div className="assistant-avatar">L</div>
-              ) : (
-                <div className="user-avatar">You</div>
-              )}
-
-              <div className="message-content">
-                <div
-                  className={`message-bubble ${
-                    message.error ? "error" : ""
+          <div className="history-list">
+            {historyLoading ? (
+              <div className="history-empty">
+                <div className="history-loader"></div>
+                <span>Loading chats...</span>
+              </div>
+            ) : history.length === 0 ? (
+              <div className="history-empty">
+                <div className="history-empty-icon">✦</div>
+                <strong>No conversations yet</strong>
+                <span>Your saved chats will appear here.</span>
+              </div>
+            ) : (
+              history.map((item) => (
+                <button
+                  className={`history-item ${
+                    conversationId === item.id ? "active" : ""
                   }`}
+                  key={item.id}
+                  onClick={() => loadConversation(item.id)}
                 >
-                  {message.role === "assistant" && (
-                    <div className="assistant-label">LDRP AI</div>
-                  )}
+                  <span className="history-item-icon">◇</span>
 
-                  <div className="answer-text">{message.content}</div>
-                </div>
+                  <span className="history-item-body">
+                    <strong>{item.title}</strong>
+                    <small>
+                      {new Date(item.updated_at).toLocaleDateString(
+                        undefined,
+                        {
+                          day: "2-digit",
+                          month: "short",
+                        }
+                      )}
+                    </small>
+                  </span>
 
-                {message.sources &&
-                  message.sources.length > 0 &&
-                  (() => {
-                    const isExpanded = !!expandedSources[index];
+                  <span
+                    className="history-delete"
+                    onClick={(event) =>
+                      deleteConversation(event, item.id)
+                    }
+                    title="Delete conversation"
+                  >
+                    {deletingId === item.id ? "…" : "×"}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
 
-                    const visibleSources = isExpanded
-                      ? message.sources
-                      : message.sources.slice(0, 1);
-
-                    const hiddenCount = Math.max(
-                      message.sources.length - 1,
-                      0
-                    );
-
-                    return (
-                      <div className="sources">
-                        <div className="sources-title">
-                          <span>◈</span>
-                          Sources
-                        </div>
-
-                        {visibleSources.map((source, sourceIndex) => (
-                          <div
-                            className="source-card glass"
-                            key={`${index}-${sourceIndex}`}
-                          >
-                            <div className="source-icon">
-                              {source.source_type === "pdf"
-                                ? "📄"
-                                : "🌐"}
-                            </div>
-
-                            <div className="source-info">
-                              <strong>
-                                {source.title ||
-                                  source.source ||
-                                  "LDRP Source"}
-                              </strong>
-
-                              <span>
-                                {source.source_type === "pdf"
-                                  ? `PDF • Page ${source.page ?? "N/A"}`
-                                  : "Official LDRP Website"}
-                              </span>
-                            </div>
-
-                            {source.url && (
-                              <a
-                                href={source.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="source-open"
-                              >
-                                Open ↗
-                              </a>
-                            )}
-                          </div>
-                        ))}
-
-                        {message.sources.length > 1 && (
-                          <button
-                            type="button"
-                            className="sources-toggle"
-                            onClick={() =>
-                              setExpandedSources((prev) => ({
-                                ...prev,
-                                [index]: !isExpanded,
-                              }))
-                            }
-                          >
-                            {isExpanded
-                              ? "− Show less"
-                              : `+ View ${hiddenCount} more`}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })()}
+          <div className="history-bottom">
+            <div className="history-account">
+              <div className="history-account-avatar">
+                {(user?.name || "U").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <strong>{user?.name || "User"}</strong>
+                <span>Personal workspace</span>
               </div>
             </div>
-          ))}
+          </div>
+        </aside>
 
-          {loading && (
-            <div className="message-row assistant">
-              <div className="assistant-avatar">L</div>
+        <button
+          className="history-toggle"
+          onClick={() => setHistoryOpen((value) => !value)}
+          title={historyOpen ? "Hide history" : "Show history"}
+          aria-label="Toggle chat history"
+        >
+          {historyOpen ? "‹" : "›"}
+        </button>
 
-              <div className="message-content">
-                <div className="message-bubble loading-bubble">
-                  <div className="assistant-label">LDRP AI</div>
+        <main
+          className={`chat-container ${
+            started ? "chat-started" : ""
+          }`}
+        >
+          <section className={`hero ${started ? "hero-started" : ""}`}>
+            <div className="ai-orb">
+              <div className="orb-core">🎓</div>
+              <div className="orb-ring ring-a"></div>
+              <div className="orb-ring ring-b"></div>
+            </div>
 
-                  <div className="thinking">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <small>Searching knowledge base...</small>
+            <div className="hero-badge">✦ LDRP INTELLIGENCE</div>
+
+            <h2>
+              Ask anything.
+              <br />
+              <span>Get intelligent answers.</span>
+            </h2>
+
+            <p>
+              Your AI-powered academic assistant for LDRP-ITR
+              information and MCA resources.
+            </p>
+
+            <div className="compact-chat-title">
+              <span className="compact-dot"></span>
+              LDRP AI
+            </div>
+          </section>
+
+          <section
+            className={`suggestions ${
+              started ? "suggestions-hidden" : ""
+            }`}
+          >
+            {suggestedQuestions.map((item, index) => (
+              <button
+                className="suggestion glass"
+                key={item}
+                onClick={() => sendMessage(item)}
+                style={{
+                  animationDelay: `${index * 0.08}s`,
+                }}
+              >
+                <span className="suggestion-icon">
+                  {["📚", "🎓", "🔎", "📊"][index]}
+                </span>
+                <span>{item}</span>
+                <span className="suggestion-arrow">→</span>
+              </button>
+            ))}
+          </section>
+
+          <section
+            className={`messages ${
+              started ? "messages-visible" : ""
+            }`}
+          >
+            {messages.map((message, index) => (
+              <div
+                className={`message-row ${message.role}`}
+                key={`${conversationId || "new"}-${index}`}
+              >
+                {message.role === "assistant" ? (
+                  <div className="assistant-avatar">L</div>
+                ) : (
+                  <div className="user-avatar">You</div>
+                )}
+
+                <div className="message-content">
+                  <div
+                    className={`message-bubble ${
+                      message.error ? "error" : ""
+                    }`}
+                  >
+                    {message.role === "assistant" && (
+                      <div className="assistant-label">
+                        LDRP AI
+                      </div>
+                    )}
+
+                    <div className="answer-text">
+                      {message.content}
+                    </div>
+                  </div>
+
+                  {message.sources &&
+                    message.sources.length > 0 &&
+                    (() => {
+                      const isExpanded =
+                        !!expandedSources[index];
+
+                      const visibleSources = isExpanded
+                        ? message.sources
+                        : message.sources.slice(0, 1);
+
+                      const hiddenCount = Math.max(
+                        message.sources.length - 1,
+                        0
+                      );
+
+                      return (
+                        <div className="sources">
+                          <div className="sources-title">
+                            <span>◈</span>
+                            Sources
+                          </div>
+
+                          {visibleSources.map(
+                            (source, sourceIndex) => (
+                              <div
+                                className="source-card glass"
+                                key={`${index}-${sourceIndex}`}
+                              >
+                                <div className="source-icon">
+                                  {source.source_type ===
+                                  "pdf"
+                                    ? "📄"
+                                    : "🌐"}
+                                </div>
+
+                                <div className="source-info">
+                                  <strong>
+                                    {source.title ||
+                                      source.source ||
+                                      "LDRP Source"}
+                                  </strong>
+
+                                  <span>
+                                    {source.source_type ===
+                                    "pdf"
+                                      ? `PDF • Page ${
+                                          source.page ?? "N/A"
+                                        }`
+                                      : "Official LDRP Website"}
+                                  </span>
+                                </div>
+
+                                {source.url && (
+                                  <a
+                                    href={source.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="source-open"
+                                  >
+                                    Open ↗
+                                  </a>
+                                )}
+                              </div>
+                            )
+                          )}
+
+                          {message.sources.length > 1 && (
+                            <button
+                              type="button"
+                              className="sources-toggle"
+                              onClick={() =>
+                                setExpandedSources(
+                                  (prev) => ({
+                                    ...prev,
+                                    [index]: !isExpanded,
+                                  })
+                                )
+                              }
+                            >
+                              {isExpanded
+                                ? "− Show less"
+                                : `+ View ${hiddenCount} more`}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="message-row assistant">
+                <div className="assistant-avatar">L</div>
+
+                <div className="message-content">
+                  <div className="message-bubble loading-bubble">
+                    <div className="assistant-label">
+                      LDRP AI
+                    </div>
+
+                    <div className="thinking">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                      <small>Searching knowledge base...</small>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </section>
-      </main>
+            )}
+          </section>
+        </main>
+      </div>
 
-      <footer className={`input-area ${started ? "input-started" : ""}`}>
+      <footer
+        className={`input-area ${
+          started ? "input-started" : ""
+        }`}
+      >
         <div className="input-glow"></div>
 
         <div className="input-wrapper glass">
@@ -350,7 +624,9 @@ function ChatApp({ user, onLogout }) {
 
           <textarea
             value={question}
-            onChange={(event) => setQuestion(event.target.value)}
+            onChange={(event) =>
+              setQuestion(event.target.value)
+            }
             onKeyDown={handleKeyDown}
             placeholder="Ask LDRP AI anything..."
             rows="1"
@@ -389,7 +665,6 @@ function App() {
 
       try {
         const response = await fetch(`${AUTH_API}/me`, {
-          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -397,7 +672,6 @@ function App() {
 
         if (!response.ok) {
           clearAuth();
-          setUser(null);
           setScreen("login");
           return;
         }
@@ -418,9 +692,7 @@ function App() {
         setUser(currentUser);
         setScreen("chat");
       } catch {
-        // Keep existing local data only if the backend cannot be reached.
-        // For security, the app does not open the protected chat offline.
-        setUser(null);
+        clearAuth();
         setScreen("login");
       }
     };
@@ -458,10 +730,15 @@ function App() {
 
           <div className="auth-heading">
             <h2>Checking session...</h2>
-            <p>Please wait while we verify your account.</p>
+            <p>
+              Please wait while we verify your account.
+            </p>
           </div>
 
-          <div className="auth-submit" style={{ cursor: "default" }}>
+          <div
+            className="auth-submit"
+            style={{ cursor: "default" }}
+          >
             <span className="auth-spinner"></span>
             Loading...
           </div>
@@ -488,7 +765,12 @@ function App() {
     );
   }
 
-  return <ChatApp user={user} onLogout={handleLogout} />;
+  return (
+    <ChatApp
+      user={user || getSavedUser()}
+      onLogout={handleLogout}
+    />
+  );
 }
 
 export default App;
