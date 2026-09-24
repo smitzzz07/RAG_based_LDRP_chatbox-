@@ -1724,3 +1724,539 @@
     padding-bottom: 135px !important;
   }
 }
+
+/* =========================================================
+   AUTH INPUT FIX
+   Keep auth fields separate from the chat input styles.
+   Add this at the VERY BOTTOM of App.css.
+   ========================================================= */
+
+.auth-card .auth-input-wrapper {
+  position: relative;
+
+  width: 100%;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0;
+
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.045);
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-card .auth-input-wrapper:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.auth-card .auth-input-wrapper:focus-within {
+  background: rgba(255, 255, 255, 0.06);
+
+  border-color: rgba(139, 92, 246, 0.55);
+
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.08),
+    0 0 25px rgba(124, 58, 237, 0.08);
+}
+
+.auth-card .auth-input-wrapper input {
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0 62px 0 43px;
+
+  border: 0 !important;
+  outline: 0 !important;
+
+  border-radius: 13px;
+
+  background: transparent !important;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 13px;
+  line-height: normal;
+
+  box-shadow: none !important;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.auth-card .auth-input-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.27);
+  opacity: 1;
+}
+
+.auth-card .auth-input-wrapper input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.auth-input-icon {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+
+  transform: translateY(-50%);
+
+  color: rgba(167, 139, 250, 0.78);
+
+  font-size: 13px;
+
+  pointer-events: none;
+}
+
+.auth-card .password-toggle {
+  position: absolute;
+
+  right: 12px;
+  top: 50%;
+
+  z-index: 3;
+
+  transform: translateY(-50%);
+
+  width: auto;
+  height: auto;
+
+  margin: 0;
+  padding: 3px 0;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  color: rgba(167, 139, 250, 0.85);
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow: none !important;
+}
+
+.auth-card .password-toggle:hover {
+  color: #c4b5fd;
+  transform: translateY(-50%);
+}
+
+/* Prevent the old global .input-wrapper rules from affecting auth. */
+.auth-card .input-wrapper {
+  max-width: none;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Better spacing around each field. */
+.auth-card .form-group {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .auth-card .auth-input-wrapper {
+    height: 49px;
+  }
+
+  .auth-card .auth-input-wrapper input {
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   PROFESSIONAL LDRP HEADER
+   Add at the VERY BOTTOM of App.css
+   ========================================================= */
+
+.header {
+  height: 72px !important;
+  min-height: 72px !important;
+  box-sizing: border-box !important;
+  padding: 0 28px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+
+  background: rgba(8, 8, 20, 0.82) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075) !important;
+
+  backdrop-filter: blur(24px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+}
+
+.header .brand {
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.header .logo-3d {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  flex: 0 0 38px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 12px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #7c3aed 0%,
+      #5b21b6 52%,
+      #4338ca 100%
+    ) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+
+  box-shadow:
+    0 8px 24px rgba(124, 58, 237, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+
+  transform: none !important;
+}
+
+.header .logo-3d span {
+  display: block !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.header .brand-text {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+
+.header .brand-text h1 {
+  margin: 0 !important;
+  color: #f8fafc !important;
+  font-size: 14px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.2px !important;
+  white-space: nowrap !important;
+}
+
+.header .brand-text p {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.42) !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+
+/* Right side */
+
+.header .header-right {
+  min-width: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.header .status {
+  height: 34px !important;
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+
+  padding: 0 11px !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.075) !important;
+  border-radius: 10px !important;
+
+  background: rgba(255, 255, 255, 0.035) !important;
+
+  color: rgba(255, 255, 255, 0.58) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+
+  white-space: nowrap !important;
+}
+
+.header .status-dot {
+  width: 6px !important;
+  height: 6px !important;
+  min-width: 6px !important;
+
+  border-radius: 50% !important;
+
+  background: #4ade80 !important;
+
+  box-shadow:
+    0 0 8px rgba(74, 222, 128, 0.85) !important;
+}
+
+.header .new-chat {
+  height: 34px !important;
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0 13px !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 10px !important;
+
+  background: rgba(255, 255, 255, 0.045) !important;
+
+  color: rgba(255, 255, 255, 0.78) !important;
+
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+
+  cursor: pointer !important;
+
+  transition: 0.2s ease !important;
+}
+
+.header .new-chat:hover {
+  background: rgba(139, 92, 246, 0.12) !important;
+  border-color: rgba(139, 92, 246, 0.32) !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
+}
+
+/* User account pill */
+
+.header .user-menu {
+  height: 42px !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+
+  padding: 4px 5px 4px 7px !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 13px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.025)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+}
+
+.header .user-avatar-small {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 9px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #6366f1
+    ) !important;
+
+  color: #fff !important;
+
+  font-size: 11px !important;
+  font-weight: 700 !important;
+
+  box-shadow:
+    0 4px 14px rgba(124, 58, 237, 0.24) !important;
+}
+
+.header .user-info {
+  min-width: 0 !important;
+  max-width: 155px !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+
+.header .user-info strong {
+  display: block !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+
+  color: rgba(255, 255, 255, 0.88) !important;
+
+  font-size: 10px !important;
+  line-height: 13px !important;
+  font-weight: 600 !important;
+}
+
+.header .user-info span {
+  display: block !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+
+  color: rgba(255, 255, 255, 0.38) !important;
+
+  font-size: 8px !important;
+  line-height: 11px !important;
+  font-weight: 400 !important;
+}
+
+.header .logout-button {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 9px !important;
+
+  background: rgba(255, 255, 255, 0.035) !important;
+
+  color: rgba(255, 255, 255, 0.50) !important;
+
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+
+  cursor: pointer !important;
+
+  transition: 0.2s ease !important;
+}
+
+.header .logout-button:hover {
+  color: #fff !important;
+  background: rgba(248, 113, 113, 0.10) !important;
+  border-color: rgba(248, 113, 113, 0.25) !important;
+}
+
+/* Responsive */
+
+@media (max-width: 760px) {
+  .header {
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 0 14px !important;
+  }
+
+  .header .status {
+    display: none !important;
+  }
+
+  .header .brand-text p {
+    display: none !important;
+  }
+
+  .header .user-info {
+    display: none !important;
+  }
+
+  .header .user-menu {
+    padding: 4px !important;
+    gap: 5px !important;
+  }
+
+  .header .new-chat {
+    padding: 0 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    gap: 8px !important;
+  }
+
+  .header .brand-text h1 {
+    font-size: 12px !important;
+  }
+
+  .header .new-chat {
+    font-size: 9px !important;
+  }
+
+  .header .logout-button {
+    display: none !important;
+  }
+}
